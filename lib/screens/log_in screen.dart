@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intern_test/screens/home_screen.dart';
 
 class LogInScreen extends StatefulWidget {
   String selectedOption;
@@ -10,6 +11,10 @@ class LogInScreen extends StatefulWidget {
 }
 
 class _LogInScreenState extends State<LogInScreen> {
+  List<Map<dynamic, dynamic>> users = [
+    {},
+  ];
+  Map<dynamic, dynamic> currentDate = {'Id': '', 'password': ','};
   final GlobalKey<FormState> _formKey = GlobalKey();
   dynamic eMailAddress;
   dynamic password;
@@ -17,11 +22,56 @@ class _LogInScreenState extends State<LogInScreen> {
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
 
-  void saveForm() {
+  void signUp(id, password) {
+    users.add(currentDate);
+    Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomeScreen(users),
+        ));
+  }
+
+  void logIn(id, password) {
+    if (checkingElement(id, password)) {
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(users),
+          ));
+    } else
+      emailIdController.clear();
+      passwordController.clear();
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Alert'),
+              content: Text('Account doesn\'t exist'),
+              actions: [
+                FlatButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Ok',
+                      style: TextStyle(color: Colors.green),
+                    ))
+              ],
+            );
+          });
+  }
+
+  bool checkingElement(id, password) {
+    return users.any((element) {
+      return element['Id'] == id && element['password'] == password;
+    });
+  }
+
+  bool saveForm() {
     bool isValid = _formKey.currentState.validate();
     if (isValid) {
       _formKey.currentState.save();
+      return true;
     }
+    return false;
   }
 
   @override
@@ -50,8 +100,8 @@ class _LogInScreenState extends State<LogInScreen> {
             ),
             SizedBox(
               height: widget.selectedOption == 'Log In'
-                  ? MediaQuery.of(context).size.height * 0.35
-                  : MediaQuery.of(context).size.height * 0.45,
+                  ? MediaQuery.of(context).size.height * 0.37
+                  : MediaQuery.of(context).size.height * 0.47,
               width: MediaQuery.of(context).size.width * 0.75,
               child: LayoutBuilder(
                 builder: (context, constraints) => Container(
@@ -70,11 +120,13 @@ class _LogInScreenState extends State<LogInScreen> {
                           : MainAxisAlignment.spaceBetween,
                       children: [
                         TextFormField(
+                          controller: emailIdController,
                           cursorColor: Colors.grey,
                           decoration: InputDecoration(
                             focusedBorder: UnderlineInputBorder(
                               borderSide: BorderSide(color: Colors.green),
                             ),
+
                             labelStyle: TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold),
@@ -91,15 +143,14 @@ class _LogInScreenState extends State<LogInScreen> {
                             if (value.length == 0) {
                               return 'Please enter E-mail Id';
                             }
-                            if (!value.contains('@') &&
+                            if (!value.contains('@') ||
                                 !value.contains('.com')) {
-                              
                               return 'Enter valid E-Mail Id';
                             }
                             return null;
                           },
                           onSaved: (email) {
-                            eMailAddress = email;
+                            currentDate['Id'] = email;
                           },
                         ),
                         TextFormField(
@@ -136,7 +187,7 @@ class _LogInScreenState extends State<LogInScreen> {
                                   saveForm();
                                 },
                           onSaved: (receivedPassword) {
-                            password = receivedPassword;
+                            currentDate['password'] = receivedPassword;
                           },
                         ),
                         if (widget.selectedOption == 'Sign Up')
@@ -178,15 +229,23 @@ class _LogInScreenState extends State<LogInScreen> {
                           height: 12,
                         ),
                         RaisedButton(
-                          child: Text(widget.selectedOption,
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 15)),
-                          color: Colors.red,
-                          shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(15))),
-                          onPressed: saveForm,
-                        ),
+                            child: Text(widget.selectedOption,
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 15)),
+                            color: Colors.red,
+                            shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(15))),
+                            onPressed: () {
+                              saveForm();
+                              if (saveForm()) {
+                                widget.selectedOption == 'Sign Up'
+                                    ? signUp(currentDate['Id'],
+                                        currentDate['password'])
+                                    : logIn(currentDate['Id'],
+                                        currentDate['password']);
+                              }
+                            }),
                       ],
                     ),
                   ),
@@ -218,7 +277,6 @@ class _LogInScreenState extends State<LogInScreen> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(15))),
                     onPressed: () {
-
                       setState(() {
                         emailIdController.clear();
                         passwordController.clear();
