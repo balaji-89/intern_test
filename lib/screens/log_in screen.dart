@@ -13,14 +13,14 @@ class LogInScreen extends StatefulWidget {
 
 class _LogInScreenState extends State<LogInScreen> {
   List<Map<dynamic, dynamic>> users = [];
-  Map<dynamic, dynamic> currentDate = {'Id': '', 'password': ' '};
+  Map<dynamic, dynamic> currentData = {'Id': '', 'password': ' '};
   final GlobalKey<FormState> _formKey = GlobalKey();
   TextEditingController emailIdController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
 
   void signUp() {
-    Hive.box('users').add(currentDate);
+    Hive.box('users').add(currentData);
     Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -28,33 +28,34 @@ class _LogInScreenState extends State<LogInScreen> {
         ));
   }
 
-  void logIn(id, password) {
-    bool result=checkingElement(id, password);
+  void logIn() {
+    bool result = checkingElement(currentData['Id'], currentData['password']);
     if (result) {
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => HomeScreen(),
           ));
-    } else
+    } else {
       emailIdController.clear();
-    passwordController.clear();
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Alert'),
-            content: Text('Account doesn\'t exist'),
-            actions: [
-              FlatButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'Ok',
-                    style: TextStyle(color: Colors.green),
-                  ))
-            ],
-          );
-        });
+      passwordController.clear();
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Alert'),
+              content: Text('Account doesn\'t exist'),
+              actions: [
+                FlatButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Ok',
+                      style: TextStyle(color: Colors.green),
+                    ))
+              ],
+            );
+          });
+    }
   }
 
   // usersDataBox.any((element) {
@@ -63,18 +64,19 @@ class _LogInScreenState extends State<LogInScreen> {
   bool checkingElement(id, password) {
     final hiveBox = Hive.box('users');
     bool result;
-    for (var i = 0; i <= hiveBox.length; i++) {
+    for (var i = 0; i < hiveBox.length; i++) {
       var element = hiveBox.getAt(i);
       print(element['Id']);
       print(element['password']);
-      if(element['ID']==id && element['password']==password){
-        result=true;
+      if (element['Id'] == id && element['password'] == password) {
+        print('if part');
+        result = true;
         break;
+      } else {
+        print('else part');
+        result = false;
       }
-      else{
-        result=false;
-      }
-     }
+    }
     return result;
   }
 
@@ -83,10 +85,9 @@ class _LogInScreenState extends State<LogInScreen> {
     if (isValid) {
       _formKey.currentState.save();
       return true;
-    }else{
+    } else {
       return false;
     }
-
   }
 
   @override
@@ -165,7 +166,7 @@ class _LogInScreenState extends State<LogInScreen> {
                             return null;
                           },
                           onSaved: (email) {
-                            currentDate['Id'] = email;
+                            currentData['Id'] = email;
                           },
                         ),
                         TextFormField(
@@ -202,7 +203,7 @@ class _LogInScreenState extends State<LogInScreen> {
                                   saveForm();
                                 },
                           onSaved: (receivedPassword) {
-                            currentDate['password'] = receivedPassword;
+                            currentData['password'] = receivedPassword;
                           },
                         ),
                         if (widget.selectedOption == 'Sign Up')
@@ -256,8 +257,7 @@ class _LogInScreenState extends State<LogInScreen> {
                               if (saveForm()) {
                                 widget.selectedOption == 'Sign Up'
                                     ? signUp()
-                                    : logIn(currentDate['Id'],
-                                        currentDate['password']);
+                                    : logIn();
                               }
                             }),
                       ],
