@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:intern_test/screens/log_in%20screen.dart';
-
-void main() {
+import 'package:path_provider/path_provider.dart' as path_provider;
+void main() async{
   runApp(MyApp());
+  final appDirectory=await path_provider.getApplicationDocumentsDirectory();
+  Hive.init(appDirectory.path);
+  await Hive.openBox('users');
 
 }
 

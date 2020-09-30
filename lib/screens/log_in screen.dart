@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intern_test/screens/home_screen.dart';
+import 'package:hive/hive.dart';
 
 class LogInScreen extends StatefulWidget {
   String selectedOption;
@@ -11,58 +12,70 @@ class LogInScreen extends StatefulWidget {
 }
 
 class _LogInScreenState extends State<LogInScreen> {
-  List<Map<dynamic, dynamic>> users = [
-    {},
-  ];
-  Map<dynamic, dynamic> currentDate = {'Id': '', 'password': ','};
+  List<Map<dynamic, dynamic>> users = [];
+  Map<dynamic, dynamic> currentDate = {'Id': '', 'password': ' '};
   final GlobalKey<FormState> _formKey = GlobalKey();
-  dynamic eMailAddress;
-  dynamic password;
   TextEditingController emailIdController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
 
-  void signUp(id, password) {
-    users.add(currentDate);
+  void signUp() {
+    Hive.box('users').add(currentDate);
     Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => HomeScreen(users),
+          builder: (context) => HomeScreen(),
         ));
   }
 
   void logIn(id, password) {
-    if (checkingElement(id, password)) {
+    bool result=checkingElement(id, password);
+    if (result) {
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => HomeScreen(users),
+            builder: (context) => HomeScreen(),
           ));
     } else
       emailIdController.clear();
-      passwordController.clear();
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Alert'),
-              content: Text('Account doesn\'t exist'),
-              actions: [
-                FlatButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      'Ok',
-                      style: TextStyle(color: Colors.green),
-                    ))
-              ],
-            );
-          });
+    passwordController.clear();
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Alert'),
+            content: Text('Account doesn\'t exist'),
+            actions: [
+              FlatButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'Ok',
+                    style: TextStyle(color: Colors.green),
+                  ))
+            ],
+          );
+        });
   }
 
+  // usersDataBox.any((element) {
+  // return element['Id'] == id && element['password'] == password;
+  // });
   bool checkingElement(id, password) {
-    return users.any((element) {
-      return element['Id'] == id && element['password'] == password;
-    });
+    final hiveBox = Hive.box('users');
+    bool result;
+    for (var i = 0; i <= hiveBox.length; i++) {
+      var element = hiveBox.getAt(i);
+      print(element['Id']);
+      print(element['password']);
+      if(element['ID']==id && element['password']==password){
+        result=true;
+        break;
+      }
+      else{
+        result=false;
+      }
+     }
+    return result;
   }
 
   bool saveForm() {
@@ -70,12 +83,15 @@ class _LogInScreenState extends State<LogInScreen> {
     if (isValid) {
       _formKey.currentState.save();
       return true;
+    }else{
+      return false;
     }
-    return false;
+
   }
 
   @override
   void dispose() {
+    Hive.close();
     emailIdController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
@@ -126,7 +142,6 @@ class _LogInScreenState extends State<LogInScreen> {
                             focusedBorder: UnderlineInputBorder(
                               borderSide: BorderSide(color: Colors.green),
                             ),
-
                             labelStyle: TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold),
@@ -240,8 +255,7 @@ class _LogInScreenState extends State<LogInScreen> {
                               saveForm();
                               if (saveForm()) {
                                 widget.selectedOption == 'Sign Up'
-                                    ? signUp(currentDate['Id'],
-                                        currentDate['password'])
+                                    ? signUp()
                                     : logIn(currentDate['Id'],
                                         currentDate['password']);
                               }
