@@ -21,11 +21,35 @@ class _LogInScreenState extends State<LogInScreen> {
 
   void signUp() {
     Hive.box('users').add(currentData);
-    Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomeScreen(),
-        ));
+    bool result = checkingElement(currentData['Id'], currentData['password']);
+
+    if (result) {
+      emailIdController.clear();
+      passwordController.clear();
+      confirmPasswordController.clear();
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Alert'),
+              content: Text('Account already exist'),
+              actions: [
+                FlatButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Ok',
+                      style: TextStyle(color: Colors.green),
+                    ))
+              ],
+            );
+          });
+    } else {
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(),
+          ));
+    }
   }
 
   void logIn() {
